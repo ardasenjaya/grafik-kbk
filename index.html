@@ -155,215 +155,163 @@
   </style>
 </head>
 <body>
-
 <h3 style="text-align:center">Grafik Indikator Bulanan</h3>
-
 <div id="container">
   <form id="dataForm">
     <table>
-      <thead>
-        <tr>
-          <th>Indikator</th>
-          <th>Bulan Lalu</th>
-          <th>Bulan Ini</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Indikator</th><th>Bulan Lalu</th><th>Bulan Ini</th></tr></thead>
       <tbody id="formBody"></tbody>
     </table>
     <button type="submit">Tampilkan Grafik</button>
     <button type="button" id="saveBtn">Save to PNG</button>
   </form>
-
   <canvas id="indikatorChart"></canvas>
 </div>
-
 <script>
-  const indikator = [
-    { nama: 'Angka Kontak', persen: true, target: 15, label: 'Target' },
-    { nama: 'RRNS', persen: true, target: 2, label: 'Maksimal' },
-    { nama: 'Prolanis Terkendali', persen: true, target: 5, label: 'Target' },
-  ];
-
-  const formBody = document.getElementById('formBody');
-  const savedData = JSON.parse(localStorage.getItem('indikatorInput') || '[]');
-
-  indikator.forEach((item, i) => {
-    const bulanLalu = savedData[i]?.bulanLalu ?? '';
-    const bulanIni = savedData[i]?.bulanIni ?? '';
-
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${item.nama}</td>
-      <td><input type="number" name="bulanLalu" data-index="${i}" step="any" value="${bulanLalu}" required></td>
-      <td><input type="number" name="bulanIni" data-index="${i}" step="any" value="${bulanIni}" required></td>
-    `;
-    formBody.appendChild(row);
-  });
-
-  const ctx = document.getElementById('indikatorChart').getContext('2d');
-
-  let chart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: indikator.map(i => i.nama),
-      datasets: [
-        {
-          label: 'Bulan Lalu',
-          data: [],
-          backgroundColor: 'rgba(255, 99, 132, 0.7)',
-          categoryPercentage: 0.5,
-          barPercentage: 0.7
-        },
-        {
-          label: 'Bulan Ini',
-          data: [],
-          backgroundColor: 'rgba(54, 162, 235, 0.7)',
-          categoryPercentage: 0.5,
-          barPercentage: 0.7
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'top' },
-        datalabels: {
-          anchor: 'end',
-          align: 'start',
-          formatter: (value, context) => {
-            const isPersen = indikator[context.dataIndex].persen;
-            return value + (isPersen ? '%' : '');
-          },
-          color: '#000',
-          font: ctx => {
-            const isMobile = window.innerWidth <= 600;
-            return { weight: 'bold', size: isMobile ? 10 : 14 };
-          }
-        },
-        annotation: { annotations: {} },
-        tooltip: {
-          mode: 'index',
-          intersect: false,
-          callbacks: {
-            title: (ctx) => `Indikator: ${ctx[0].label}`,
-            label: (ctx) => {
-              const isPersen = indikator[ctx.dataIndex].persen;
-              return `${ctx.dataset.label}: ${ctx.raw}${isPersen ? '%' : ''}`;
-            }
-          }
-        }
+const indikator = [
+  { nama: 'Angka Kontak', persen: true, target: 15, label: 'Target' },
+  { nama: 'RRNS', persen: true, target: 2, label: 'Maksimal' },
+  { nama: 'Prolanis Terkendali', persen: true, target: 5, label: 'Target' },
+];
+const formBody = document.getElementById('formBody');
+const savedData = JSON.parse(localStorage.getItem('indikatorInput') || '[]');
+indikator.forEach((item, i) => {
+  const bulanLalu = savedData[i]?.bulanLalu ?? '';
+  const bulanIni = savedData[i]?.bulanIni ?? '';
+  const row = document.createElement('tr');
+  row.innerHTML = `<td>${item.nama}</td>
+    <td><input type="number" name="bulanLalu" data-index="${i}" step="any" value="${bulanLalu}" required></td>
+    <td><input type="number" name="bulanIni" data-index="${i}" step="any" value="${bulanIni}" required></td>`;
+  formBody.appendChild(row);
+});
+const ctx = document.getElementById('indikatorChart').getContext('2d');
+let chart = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: indikator.map(i => i.nama),
+    datasets: [
+      { label: 'Bulan Lalu', data: [], backgroundColor: 'rgba(255, 99, 132, 0.7)', categoryPercentage: 0.5, barPercentage: 0.7 },
+      { label: 'Bulan Ini', data: [], backgroundColor: 'rgba(54, 162, 235, 0.7)', categoryPercentage: 0.5, barPercentage: 0.7 }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      datalabels: {
+        anchor: 'center', align: 'center',
+        offset: ctx => window.innerWidth <= 600 ? 3 : 8,
+        formatter: (value, ctx) => value + (indikator[ctx.dataIndex].persen ? '%' : ''),
+        color: '#000',
+        textStrokeColor: '#fff',
+        textStrokeWidth: 0.5,
+        font: ctx => ({ weight: 'bold', color: 'black', size: window.innerWidth <= 600 ? 7 : 13 })
       },
-      interaction: {
-        mode: 'index',
-        intersect: false
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Nilai (%)'
-          },
-          suggestedMax: 100
+      annotation: { annotations: {} },
+      tooltip: {
+        mode: 'index', intersect: false,
+        callbacks: {
+          title: (ctx) => `Indikator: ${ctx[0].label}`,
+          label: (ctx) => `${ctx.dataset.label}: ${ctx.raw}${indikator[ctx.dataIndex].persen ? '%' : ''}`
         }
       }
     },
-    plugins: [ChartDataLabels]
-  });
-
-  document.getElementById('dataForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const isMobile = window.matchMedia('(max-width: 600px)').matches;
+    interaction: { mode: 'index', intersect: false },
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: 'Nilai (%)' }, suggestedMax: 100 },
+      x: {
+        ticks: {
+        color: '#000',
+        padding: 2, // Warna teks label sumbu X
+        font: {
+              size: window.innerWidth <= 600 ? 10 : 14, // Ukuran font dinamis
+              weight: 'bold' // Tambahan jika ingin bold
+      }
+    }
+  }
+    }
+  },
+  plugins: [ChartDataLabels]
+});
+document.getElementById('dataForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const bulanLalu = [...document.getElementsByName('bulanLalu')].map(i => parseFloat(i.value));
+  const bulanIni = [...document.getElementsByName('bulanIni')].map(i => parseFloat(i.value));
+  localStorage.setItem('indikatorInput', JSON.stringify(bulanLalu.map((v, i) => ({ bulanLalu: v, bulanIni: bulanIni[i] }))));
+  chart.data.datasets[0].data = bulanLalu;
+  chart.data.datasets[1].data = bulanIni;
+  const semua = [...bulanLalu, ...bulanIni, ...indikator.map(i => i.target)];
+  const max = Math.max(...semua);
+  chart.options.scales.y.suggestedMax = max < 10 ? 10 : max * 1.2;
+  const annotations = {};
+  indikator.forEach((item, i) => {
+    const isMobile = window.innerWidth <= 600;
     const fontSize = isMobile ? 7 : 13;
-
-    const bulanLaluInputs = document.getElementsByName('bulanLalu');
-    const bulanIniInputs = document.getElementsByName('bulanIni');
-
-    const bulanLalu = Array.from(bulanLaluInputs).map(i => parseFloat(i.value));
-    const bulanIni = Array.from(bulanIniInputs).map(i => parseFloat(i.value));
-
-    const simpan = bulanLalu.map((val, i) => ({
-      bulanLalu: val,
-      bulanIni: parseFloat(bulanIniInputs[i].value)
-    }));
-    localStorage.setItem('indikatorInput', JSON.stringify(simpan));
-
-    chart.data.datasets[0].data = bulanLalu;
-    chart.data.datasets[1].data = bulanIni;
-
-    const semuaNilai = [...bulanLalu, ...bulanIni, ...indikator.map(i => i.target)];
-    const max = Math.max(...semuaNilai);
-    chart.options.scales.y.suggestedMax = max < 10 ? 10 : max * 1.2;
-
-    const annotations = {};
-    indikator.forEach((item, i) => {
-      const warnaGaris = (i === 1) ? 'red' : 'green';
-      let yOffset = -item.target / 2;
+    let yOffset, posisiLabel;
+    if (item.label === 'Maksimal') {
+      yOffset = isMobile ? 5 : 10;
+      posisiLabel = 'start';
+    } else {
+      yOffset = -item.target / 2;
       yOffset = Math.max(-40, Math.min(yOffset, -5));
-      const posisiLabel = item.target <= 5 ? 'start' : 'end';
-
-      annotations['target' + i] = {
+      posisiLabel = item.target <= 5 ? 'start' : 'end';
+    }
+    annotations['target' + i] = {
+      type: 'line',
+      yMin: item.target,
+      yMax: item.target,
+      borderColor: (i === 1) ? 'red' : 'green',
+      borderWidth: 2,
+      label: {
+        content: `${item.label} ${item.target}%`,
+        enabled: true,
+        backgroundColor: 'transparent',
+        color: '#000',
+        textStrokeColor: '#fff',
+        textStrokeWidth: 1,
+        font: { weight: 'bold', size: fontSize },
+        position: posisiLabel,
+        yAdjust: yOffset
+      },
+      xMin: i - 0.4,
+      xMax: i + 0.4
+    };
+    if (i === 1) {
+      annotations['ideal0'] = {
         type: 'line',
-        yMin: item.target,
-        yMax: item.target,
-        borderColor: warnaGaris,
-        borderWidth: 2,
+        yMin: 0,
+        yMax: 0,
+        borderColor: 'green',
+        borderWidth: 1.5,
         label: {
-          content: `${item.label} ${item.target}%`,
+          content: 'Ideal 0%',
           enabled: true,
           backgroundColor: 'transparent',
           color: '#000',
-          font: { weight: 'bold', size: fontSize },
-          position: posisiLabel,
-          yAdjust: yOffset
+          textStrokeColor: '#fff',
+          textStrokeWidth: 1,
+          font: { style: 'italic', size: fontSize },
+          position: 'end',
+          yAdjust: isMobile ? 19 : 12
         },
         xMin: i - 0.4,
         xMax: i + 0.4
       };
-
-      // Garis ideal 0% hanya untuk RRNS
-      if (i === 1) {
-        annotations['ideal0'] = {
-          type: 'line',
-          yMin: 0,
-          yMax: 0,
-          borderColor: 'green',
-          borderWidth: 1.5,
-          label: {
-            content: 'Ideal 0%',
-            enabled: true,
-            backgroundColor: 'transparent',
-            color: '#000',
-            font: { style: 'italic', size: fontSize },
-            position: 'end',
-            yAdjust: isMobile ? 16 : 12
-          },
-          xMin: i - 0.4,
-          xMax: i + 0.4
-        };
-      }
-    });
-
-    chart.options.plugins.annotation.annotations = annotations;
-    chart.update();
+    }
   });
-
-  document.getElementById('saveBtn').addEventListener('click', () => {
-    const inputs = document.querySelectorAll('input[type="number"]');
-    inputs.forEach(input => input.classList.add('for-canvas'));
-
-    const el = document.getElementById('container');
-    html2canvas(el).then(canvas => {
-      inputs.forEach(input => input.classList.remove('for-canvas'));
-
-      const link = document.createElement('a');
-      link.download = 'grafik_indikator.png';
-      link.href = canvas.toDataURL();
-      link.click();
-    });
+  chart.options.plugins.annotation.annotations = annotations;
+  chart.update();
+});
+document.getElementById('saveBtn').addEventListener('click', () => {
+  document.querySelectorAll('input[type="number"]').forEach(i => i.classList.add('for-canvas'));
+  html2canvas(document.getElementById('container')).then(canvas => {
+    document.querySelectorAll('input[type="number"]').forEach(i => i.classList.remove('for-canvas'));
+    const link = document.createElement('a');
+    link.download = 'grafik_indikator.png';
+    link.href = canvas.toDataURL();
+    link.click();
   });
+});
 </script>
-
 </body>
 </html>
