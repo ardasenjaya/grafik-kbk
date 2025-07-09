@@ -35,15 +35,59 @@
       box-sizing: border-box;
     }
     button {
-      padding: 6px 12px;
+      appearance: none;
+      background-color: #2ea44f;
+      border: 1px solid rgba(27, 31, 35, .15);
+      border-radius: 6px;
+      box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
+      box-sizing: border-box;
+      color: #fff;
+      cursor: pointer;
+      display: inline-block;
+      font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
       font-size: 14px;
-      margin: 5px 5px 10px 0;
+      font-weight: 600;
+      line-height: 20px;
+      padding: 6px 16px;
+      position: relative;
+      text-align: center;
+      text-decoration: none;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    button:focus:not(:focus-visible):not(.focus-visible) {
+      box-shadow: none;
+      outline: none;
+    }
+
+    button:hover {
+      background-color: #2c974b;
+    }
+
+    button:focus {
+      box-shadow: rgba(46, 164, 79, .4) 0 0 0 3px;
+      outline: none;
+    }
+
+    button:disabled {
+      background-color: #94d3a2;
+      border-color: rgba(27, 31, 35, .1);
+      color: rgba(255, 255, 255, .8);
+      cursor: default;
+    }
+
+    button:active {
+      background-color: #298e46;
+      box-shadow: rgba(20, 70, 32, .2) 0 1px 0 inset;
     }
     canvas {
       width: 100% !important;
       height: 420px !important;
     }
-    /* Saat disimpan ke PNG */
     input.for-canvas {
       transform: scale(1.1);
       transform-origin: left center;
@@ -57,11 +101,57 @@
         width: 90px;
         box-sizing: border-box;
       }
-      button {
-        font-size: 13px;
-        padding: 5px 10px;
-      }
+    button {
+      appearance: none;
+      background-color: #2ea44f;
+      border: 1px solid rgba(27, 31, 35, .15);
+      border-radius: 6px;
+      box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
+      box-sizing: border-box;
+      color: #fff;
+      cursor: pointer;
+      display: inline-block;
+      font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 20px;
+      padding: 6px 16px;
+      position: relative;
+      text-align: center;
+      text-decoration: none;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      vertical-align: middle;
+      white-space: nowrap;
     }
+
+    button:focus:not(:focus-visible):not(.focus-visible) {
+      box-shadow: none;
+      outline: none;
+    }
+
+    button:hover {
+      background-color: #2c974b;
+    }
+
+    button:focus {
+      box-shadow: rgba(46, 164, 79, .4) 0 0 0 3px;
+      outline: none;
+    }
+
+    button:disabled {
+      background-color: #94d3a2;
+      border-color: rgba(27, 31, 35, .1);
+      color: rgba(255, 255, 255, .8);
+      cursor: default;
+    }
+
+    button:active {
+      background-color: #298e46;
+      box-shadow: rgba(20, 70, 32, .2) 0 1px 0 inset;
+    }
+  }
   </style>
 </head>
 <body>
@@ -89,9 +179,9 @@
 
 <script>
   const indikator = [
-    { nama: 'Angka Kontak', persen: true, target: 15, label: 'Target', warna: 'green' },
-    { nama: 'RRNS', persen: true, target: 2, label: 'Maksimal', warna: 'red' },
-    { nama: 'Prolanis Terkendali', persen: true, target: 5, label: 'Target', warna: 'green' },
+    { nama: 'Angka Kontak', persen: true, target: 15, label: 'Target' },
+    { nama: 'RRNS', persen: true, target: 2, label: 'Maksimal' },
+    { nama: 'Prolanis Terkendali', persen: true, target: 5, label: 'Target' },
   ];
 
   const formBody = document.getElementById('formBody');
@@ -184,6 +274,9 @@
   document.getElementById('dataForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
+    const isMobile = window.matchMedia('(max-width: 600px)').matches;
+    const fontSize = isMobile ? 7 : 13;
+
     const bulanLaluInputs = document.getElementsByName('bulanLalu');
     const bulanIniInputs = document.getElementsByName('bulanIni');
 
@@ -205,24 +298,51 @@
 
     const annotations = {};
     indikator.forEach((item, i) => {
+      const warnaGaris = (i === 1) ? 'red' : 'green';
+      let yOffset = -item.target / 2;
+      yOffset = Math.max(-40, Math.min(yOffset, -5));
+      const posisiLabel = item.target <= 5 ? 'start' : 'end';
+
       annotations['target' + i] = {
         type: 'line',
         yMin: item.target,
         yMax: item.target,
-        borderColor: item.warna,
+        borderColor: warnaGaris,
         borderWidth: 2,
         label: {
           content: `${item.label} ${item.target}%`,
           enabled: true,
           backgroundColor: 'transparent',
           color: '#000',
-          font: { weight: 'bold' },
-          position: 'start',
-          yAdjust: -10
+          font: { weight: 'bold', size: fontSize },
+          position: posisiLabel,
+          yAdjust: yOffset
         },
         xMin: i - 0.4,
         xMax: i + 0.4
       };
+
+      // Garis ideal 0% hanya untuk RRNS
+      if (i === 1) {
+        annotations['ideal0'] = {
+          type: 'line',
+          yMin: 0,
+          yMax: 0,
+          borderColor: 'green',
+          borderWidth: 1.5,
+          label: {
+            content: 'Ideal 0%',
+            enabled: true,
+            backgroundColor: 'transparent',
+            color: '#000',
+            font: { style: 'italic', size: fontSize },
+            position: 'end',
+            yAdjust: isMobile ? 16 : 12
+          },
+          xMin: i - 0.4,
+          xMax: i + 0.4
+        };
+      }
     });
 
     chart.options.plugins.annotation.annotations = annotations;
