@@ -208,12 +208,16 @@ let chart = new Chart(ctx, {
         font: ctx => ({ weight: 'bold', color: 'black', size: window.innerWidth <= 600 ? 7 : 13 })
       },
       annotation: { annotations: {} },
-      tooltip: {
-        mode: 'index', intersect: false,
+      tooltip: window.innerWidth > 600 ? {
+        mode: 'index',
+        intersect: false,
         callbacks: {
           title: (ctx) => `Indikator: ${ctx[0].label}`,
           label: (ctx) => `${ctx.dataset.label}: ${ctx.raw}${indikator[ctx.dataIndex].persen ? '%' : ''}`
         }
+      } : {
+        enabled: false
+      },
       }
     },
     interaction: { mode: 'index', intersect: false },
