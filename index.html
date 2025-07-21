@@ -35,54 +35,20 @@
       box-sizing: border-box;
     }
     button {
-      appearance: none;
       background-color: #2ea44f;
       border: 1px solid rgba(27, 31, 35, .15);
       border-radius: 6px;
       box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
-      box-sizing: border-box;
       color: #fff;
       cursor: pointer;
-      display: inline-block;
-      font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
       font-size: 14px;
       font-weight: 600;
-      line-height: 20px;
       padding: 6px 16px;
-      position: relative;
       text-align: center;
       text-decoration: none;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: manipulation;
-      vertical-align: middle;
-      white-space: nowrap;
     }
-
-    button:focus:not(:focus-visible):not(.focus-visible) {
-      box-shadow: none;
-      outline: none;
-    }
-
     button:hover {
       background-color: #2c974b;
-    }
-
-    button:focus {
-      box-shadow: rgba(46, 164, 79, .4) 0 0 0 3px;
-      outline: none;
-    }
-
-    button:disabled {
-      background-color: #94d3a2;
-      border-color: rgba(27, 31, 35, .1);
-      color: rgba(255, 255, 255, .8);
-      cursor: default;
-    }
-
-    button:active {
-      background-color: #298e46;
-      box-shadow: rgba(20, 70, 32, .2) 0 1px 0 inset;
     }
     canvas {
       width: 100% !important;
@@ -99,59 +65,8 @@
       input[type="number"] {
         font-size: 12px;
         width: 90px;
-        box-sizing: border-box;
       }
-    button {
-      appearance: none;
-      background-color: #2ea44f;
-      border: 1px solid rgba(27, 31, 35, .15);
-      border-radius: 6px;
-      box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
-      box-sizing: border-box;
-      color: #fff;
-      cursor: pointer;
-      display: inline-block;
-      font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
-      font-size: 14px;
-      font-weight: 600;
-      line-height: 20px;
-      padding: 6px 16px;
-      position: relative;
-      text-align: center;
-      text-decoration: none;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: manipulation;
-      vertical-align: middle;
-      white-space: nowrap;
     }
-
-    button:focus:not(:focus-visible):not(.focus-visible) {
-      box-shadow: none;
-      outline: none;
-    }
-
-    button:hover {
-      background-color: #2c974b;
-    }
-
-    button:focus {
-      box-shadow: rgba(46, 164, 79, .4) 0 0 0 3px;
-      outline: none;
-    }
-
-    button:disabled {
-      background-color: #94d3a2;
-      border-color: rgba(27, 31, 35, .1);
-      color: rgba(255, 255, 255, .8);
-      cursor: default;
-    }
-
-    button:active {
-      background-color: #298e46;
-      box-shadow: rgba(20, 70, 32, .2) 0 1px 0 inset;
-    }
-  }
   </style>
 </head>
 <body>
@@ -166,6 +81,9 @@
     <button type="button" id="saveBtn">Save to PNG</button>
   </form>
   <canvas id="indikatorChart"></canvas>
+  <small style="display:block; text-align:center; font-size:12px; color:#1f77d0; margin-top:6px;">
+    Capaian Mid KBK <span style="font-size:11px;">(Pertengahan Bulan)</span>
+  </small>
 </div>
 <script>
 const indikator = [
@@ -217,21 +135,20 @@ let chart = new Chart(ctx, {
           label: (ctx) => `${ctx.dataset.label}: ${ctx.raw}${indikator[ctx.dataIndex].persen ? '%' : ''}`
         }
       }
-      }
     },
     interaction: { mode: 'index', intersect: false },
     scales: {
       y: { beginAtZero: true, title: { display: true, text: 'Nilai (%)' }, suggestedMax: 100 },
       x: {
         ticks: {
-        color: '#000',
-        padding: 2, // Warna teks label sumbu X
-        font: {
-              size: window.innerWidth <= 600 ? 10 : 14, // Ukuran font dinamis
-              weight: 'bold' // Tambahan jika ingin bold
+          color: '#000',
+          padding: 2,
+          font: {
+            size: window.innerWidth <= 600 ? 10 : 14,
+            weight: 'bold'
+          }
+        }
       }
-    }
-  }
     }
   },
   plugins: [ChartDataLabels]
