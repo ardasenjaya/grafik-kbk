@@ -173,9 +173,17 @@ function updateLabel() {
     bulanList[bLalu] + " " + tLalu;
 }
 
-bulanSelect.onchange = updateLabel;
-tahunSelect.onchange = updateLabel;
+bulanSelect.onchange = () => {
+  updateLabel();
+  loadData();
+};
+
+tahunSelect.onchange = () => {
+  updateLabel();
+  loadData();
+};
 updateLabel();
+loadData();
 
 // ===== CHART =====
 const ctx = document.getElementById('indikatorChart').getContext('2d');
@@ -327,6 +335,24 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     link.click();
   });
 });
+
+function loadData() {
+  const data = JSON.parse(localStorage.getItem(getKey()) || '[]');
+
+  const inputLalu = document.getElementsByName('bulanLalu');
+  const inputIni = document.getElementsByName('bulanIni');
+
+  data.forEach((d, i) => {
+    if (inputLalu[i]) inputLalu[i].value = d.bulanLalu ?? '';
+    if (inputIni[i]) inputIni[i].value = d.bulanIni ?? '';
+  });
+
+  // langsung tampilkan grafik kalau ada data
+  if (data.length) {
+    document.getElementById('dataForm')
+      .dispatchEvent(new Event('submit'));
+  }
+}
 
 </script>
 
