@@ -11,40 +11,36 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 10px;
-    }
-    #container {
-      background: #fff;
-      padding: 10px;
-    }
+    body { font-family: sans-serif; padding: 10px; }
+    #container { background: #fff; padding: 10px; }
+
     table {
       border-collapse: collapse;
       margin-bottom: 10px;
       font-size: 14px;
       width: 100%;
     }
+
     th, td {
       padding: 4px;
       text-align: center;
       border: 1px solid #ccc;
     }
+
     input {
       width: 80px;
-      font-size: 14px;
       text-align: right;
     }
+
     button {
       background-color: #2ea44f;
       border-radius: 6px;
       color: #fff;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
       padding: 6px 16px;
       margin-right: 5px;
+      cursor: pointer;
     }
+
     canvas {
       width: 100% !important;
       height: 420px !important;
@@ -58,32 +54,31 @@
 
 <div id="container">
 
-  <!-- BULAN -->
-  <div style="margin-bottom:10px;">
-    <label>Bulan: </label>
-    <select id="bulanSelect"></select>
+<div style="margin-bottom:10px;">
+  <label>Bulan: </label>
+  <select id="bulanSelect"></select>
 
-    <label style="margin-left:10px;">Tahun: </label>
-    <select id="tahunSelect"></select>
-  </div>
+  <label style="margin-left:10px;">Tahun: </label>
+  <select id="tahunSelect"></select>
+</div>
 
-  <form id="dataForm">
-    <table>
-      <thead>
-        <tr>
-          <th>Indikator</th>
-          <th id="labelBulanLalu">Bulan Lalu</th>
-          <th id="labelBulanIni">Bulan Ini</th>
-        </tr>
-      </thead>
-      <tbody id="formBody"></tbody>
-    </table>
+<form id="dataForm">
+<table>
+<thead>
+<tr>
+<th>Indikator</th>
+<th id="labelBulanLalu">Bulan Lalu</th>
+<th id="labelBulanIni">Bulan Ini</th>
+</tr>
+</thead>
+<tbody id="formBody"></tbody>
+</table>
 
-    <button type="submit">Tampilkan Grafik</button>
-    <button type="button" id="saveBtn">Save to PNG</button>
-  </form>
+<button type="submit">Tampilkan Grafik</button>
+<button type="button" id="saveBtn">Save to PNG</button>
+</form>
 
-  <canvas id="indikatorChart"></canvas>
+<canvas id="indikatorChart"></canvas>
 </div>
 
 <script>
@@ -154,8 +149,8 @@ for (let y = currentYear - 2; y <= currentYear + 2; y++) {
 bulanSelect.value = now.getMonth();
 tahunSelect.value = currentYear;
 
-// ===== LABEL BULAN =====
-function updateLabelBulan() {
+// ===== LABEL =====
+function updateLabel() {
   const b = +bulanSelect.value;
   let t = +tahunSelect.value;
 
@@ -174,9 +169,9 @@ function updateLabelBulan() {
     bulanList[bLalu] + " " + tLalu;
 }
 
-bulanSelect.onchange = updateLabelBulan;
-tahunSelect.onchange = updateLabelBulan;
-updateLabelBulan();
+bulanSelect.onchange = updateLabel;
+tahunSelect.onchange = updateLabel;
+updateLabel();
 
 // ===== CHART =====
 const ctx = document.getElementById('indikatorChart').getContext('2d');
@@ -186,8 +181,20 @@ let chart = new Chart(ctx, {
   data: {
     labels: indikator.map(i => i.nama),
     datasets: [
-      { label: 'Bulan Lalu', data: [], backgroundColor: 'rgba(255, 99, 132, 0.7)', categoryPercentage: 0.5, barPercentage: 0.7 },
-      { label: 'Bulan Ini', data: [], backgroundColor: 'rgba(54, 162, 235, 0.7)', categoryPercentage: 0.5, barPercentage: 0.7 }
+      {
+        label: 'Bulan Lalu',
+        data: [],
+        backgroundColor: 'rgba(255, 99, 132, 0.7)',
+        categoryPercentage: 0.5,
+        barPercentage: 0.7
+      },
+      {
+        label: 'Bulan Ini',
+        data: [],
+        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+        categoryPercentage: 0.5,
+        barPercentage: 0.7
+      }
     ]
   },
   options: {
@@ -197,14 +204,23 @@ let chart = new Chart(ctx, {
       datalabels: {
         anchor: 'center',
         align: 'center',
-        formatter: (value, ctx) => value + (indikator[ctx.dataIndex].persen ? '%' : ''),
+        offset: ctx => window.innerWidth <= 600 ? 3 : 8,
+        formatter: (value, ctx) => value + '%',
         color: '#000',
-        font: { weight: 'bold' }
+        textStrokeColor: '#fff',
+        textStrokeWidth: 0.5,
+        font: ctx => ({
+          weight: 'bold',
+          size: window.innerWidth <= 600 ? 7 : 13
+        })
       },
       annotation: { annotations: {} }
     },
     scales: {
-      y: { beginAtZero: true, title: { display: true, text: 'Nilai (%)' } }
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'Nilai (%)' }
+      }
     }
   },
   plugins: [ChartDataLabels]
@@ -220,14 +236,26 @@ document.getElementById('dataForm').addEventListener('submit', function(e) {
   chart.data.datasets[0].data = bulanLalu;
   chart.data.datasets[1].data = bulanIni;
 
-  // AUTO SCALE (ASLI)
+  // AUTO SCALE
   const semua = [...bulanLalu, ...bulanIni, ...indikator.map(i => i.target)];
   const max = Math.max(...semua);
   chart.options.scales.y.suggestedMax = max < 10 ? 10 : max * 1.2;
 
-  // TARGET (ASLI)
+  // TARGET + POSISI RAPI
   const annotations = {};
   indikator.forEach((item, i) => {
+
+    let yOffset, posisiLabel;
+
+    if (item.label === 'Maksimal') {
+      yOffset = 10;
+      posisiLabel = 'start';
+    } else {
+      yOffset = -item.target / 2;
+      yOffset = Math.max(-40, Math.min(yOffset, -5));
+      posisiLabel = item.target <= 5 ? 'start' : 'end';
+    }
+
     annotations['target' + i] = {
       type: 'line',
       yMin: item.target,
@@ -239,13 +267,16 @@ document.getElementById('dataForm').addEventListener('submit', function(e) {
         enabled: true,
         backgroundColor: 'transparent',
         color: '#000',
-        font: { weight: 'bold' }
+        textStrokeColor: '#fff',
+        textStrokeWidth: 1,
+        font: { weight: 'bold', size: 13 },
+        position: posisiLabel,
+        yAdjust: yOffset
       },
       xMin: i - 0.4,
       xMax: i + 0.4
     };
 
-    // tambahan ideal 0% RRNS (tetap seperti script awal kamu)
     if (i === 1) {
       annotations['ideal0'] = {
         type: 'line',
@@ -256,8 +287,13 @@ document.getElementById('dataForm').addEventListener('submit', function(e) {
         label: {
           content: 'Ideal 0%',
           enabled: true,
+          backgroundColor: 'transparent',
           color: '#000',
-          font: { style: 'italic' }
+          textStrokeColor: '#fff',
+          textStrokeWidth: 1,
+          font: { style: 'italic', size: 13 },
+          position: 'end',
+          yAdjust: 12
         },
         xMin: i - 0.4,
         xMax: i + 0.4
@@ -266,7 +302,6 @@ document.getElementById('dataForm').addEventListener('submit', function(e) {
   });
 
   chart.options.plugins.annotation.annotations = annotations;
-
   chart.update();
 });
 
