@@ -83,7 +83,8 @@
 
 <script>
 
-  function getKey() {
+// ===== KEY LOCAL =====
+function getKey() {
   return `indikator_${bulanSelect.value}_${tahunSelect.value}`;
 }
 
@@ -118,8 +119,8 @@ indikator.forEach((item, i) => {
   const row = document.createElement('tr');
   row.innerHTML = `
     <td>${item.nama}</td>
-    <td><input type="text" name="bulanLalu" required></td>
-    <td><input type="text" name="bulanIni" required></td>
+    <td><input type="text" name="bulanLalu"></td>
+    <td><input type="text" name="bulanIni"></td>
   `;
   formBody.appendChild(row);
 });
@@ -173,18 +174,6 @@ function updateLabel() {
     bulanList[bLalu] + " " + tLalu;
 }
 
-bulanSelect.onchange = () => {
-  updateLabel();
-  loadData();
-};
-
-tahunSelect.onchange = () => {
-  updateLabel();
-  loadData();
-};
-updateLabel();
-loadData();
-
 // ===== CHART =====
 const ctx = document.getElementById('indikatorChart').getContext('2d');
 
@@ -217,7 +206,7 @@ let chart = new Chart(ctx, {
         anchor: 'center',
         align: 'center',
         offset: ctx => window.innerWidth <= 600 ? 3 : 8,
-        formatter: (value, ctx) => value + '%',
+        formatter: (v) => v + '%',
         color: '#000',
         textStrokeColor: '#fff',
         textStrokeWidth: 0.5,
@@ -229,14 +218,29 @@ let chart = new Chart(ctx, {
       annotation: { annotations: {} }
     },
     scales: {
-      y: {
-        beginAtZero: true,
-        title: { display: true, text: 'Nilai (%)' }
-      }
+      y: { beginAtZero: true }
     }
   },
   plugins: [ChartDataLabels]
 });
+
+// ===== LOAD DATA =====
+function loadData() {
+  const data = JSON.parse(localStorage.getItem(getKey()) || '[]');
+
+  const inputLalu = document.getElementsByName('bulanLalu');
+  const inputIni = document.getElementsByName('bulanIni');
+
+  if (!data.length) return;
+
+  data.forEach((d, i) => {
+    inputLalu[i].value = d.bulanLalu;
+    inputIni[i].value = d.bulanIni;
+  });
+
+  document.getElementById('dataForm')
+    .dispatchEvent(new Event('submit'));
+}
 
 // ===== SUBMIT =====
 document.getElementById('dataForm').addEventListener('submit', function(e) {
@@ -248,30 +252,15 @@ document.getElementById('dataForm').addEventListener('submit', function(e) {
   chart.data.datasets[0].data = bulanLalu;
   chart.data.datasets[1].data = bulanIni;
 
-  // AUTO SCALE
   const semua = [...bulanLalu, ...bulanIni, ...indikator.map(i => i.target)];
   const max = Math.max(...semua);
   chart.options.scales.y.suggestedMax = max < 10 ? 10 : max * 1.2;
-  const dataSimpan = bulanLalu.map((v, i) => ({
-    bulanLalu: v,
-    bulanIni: bulanIni[i]
-  }));
 
-localStorage.setItem(getKey(), JSON.stringify(dataSimpan));
-  // TARGET + POSISI RAPI
   const annotations = {};
   indikator.forEach((item, i) => {
 
-    let yOffset, posisiLabel;
-
-    if (item.label === 'Maksimal') {
-      yOffset = -4;
-      posisiLabel = 'start';
-    } else {
-      yOffset = -item.target / 2;
-      yOffset = Math.max(-40, Math.min(yOffset, -5));
-      posisiLabel = item.target <= 5 ? 'start' : 'end';
-    }
+    let yOffset = item.label === 'Maksimal' ? -4 : -10;
+    let posisiLabel = 'start';
 
     annotations['target' + i] = {
       type: 'line',
@@ -286,8 +275,8 @@ localStorage.setItem(getKey(), JSON.stringify(dataSimpan));
         color: '#000',
         textStrokeColor: '#fff',
         textStrokeWidth: 1,
-        font: { weight: 'bold', size: 9 },
-        position: posisiLabel, 
+        font: { size: 9 },
+        position: posisiLabel,
         yAdjust: yOffset
       },
       xMin: i - 0.4,
@@ -308,9 +297,9 @@ localStorage.setItem(getKey(), JSON.stringify(dataSimpan));
           color: '#000',
           textStrokeColor: '#fff',
           textStrokeWidth: 1,
-          font: { style: 'italic', size: 7 },
-          position: 'end',
-          yAdjust: 25
+          font: { size: 7 },
+          position: 'start',
+          yAdjust: 20
         },
         xMin: i - 0.4,
         xMax: i + 0.4
@@ -319,13 +308,35 @@ localStorage.setItem(getKey(), JSON.stringify(dataSimpan));
   });
 
   chart.options.plugins.annotation.annotations = annotations;
+
+  // SAVE
+  const dataSimpan = bulanLalu.map((v, i) => ({
+    bulanLalu: v,
+    bulanIni: bulanIni[i]
+  }));
+  localStorage.setItem(getKey(), JSON.stringify(dataSimpan));
+
   chart.update();
 });
 
-// ===== SAVE =====
+// ===== EVENT =====
+bulanSelect.addEventListener('change', () => {
+  updateLabel();
+  loadData();
+});
+
+tahunSelect.addEventListener('change', () => {
+  updateLabel();
+  loadData();
+});
+
+// INIT
+updateLabel();
+loadData();
+
+// ===== SAVE PNG =====
 document.getElementById('saveBtn').addEventListener('click', () => {
   html2canvas(document.getElementById('container')).then(canvas => {
-
     const bulan = bulanList[bulanSelect.value];
     const tahun = tahunSelect.value;
 
@@ -335,24 +346,6 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     link.click();
   });
 });
-
-function loadData() {
-  const data = JSON.parse(localStorage.getItem(getKey()) || '[]');
-
-  const inputLalu = document.getElementsByName('bulanLalu');
-  const inputIni = document.getElementsByName('bulanIni');
-
-  data.forEach((d, i) => {
-    if (inputLalu[i]) inputLalu[i].value = d.bulanLalu ?? '';
-    if (inputIni[i]) inputIni[i].value = d.bulanIni ?? '';
-  });
-
-  // langsung tampilkan grafik kalau ada data
-  if (data.length) {
-    document.getElementById('dataForm')
-      .dispatchEvent(new Event('submit'));
-  }
-}
 
 </script>
 
