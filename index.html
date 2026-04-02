@@ -1,50 +1,55 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<title>Grafik Indikator Bulanan</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Grafik Indikator Bulanan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-<style>
-body { font-family: sans-serif; padding: 10px; }
-#container { background: #fff; padding: 10px; }
-
-table {
-  border-collapse: collapse;
-  width: 100%;
-  margin-bottom: 10px;
-}
-
-th, td {
-  border: 1px solid #ccc;
-  padding: 4px;
-  text-align: center;
-}
-
-input {
-  width: 90px;
-  text-align: right;
-}
-
-button {
-  background: #2ea44f;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-right: 5px;
-}
-
-canvas {
-  width: 100% !important;
-  height: 420px !important;
-}
-</style>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 10px;
+    }
+    #container {
+      background: #fff;
+      padding: 10px;
+    }
+    table {
+      border-collapse: collapse;
+      margin-bottom: 10px;
+      font-size: 14px;
+      width: 100%;
+    }
+    th, td {
+      padding: 4px;
+      text-align: center;
+      border: 1px solid #ccc;
+    }
+    input {
+      width: 80px;
+      font-size: 14px;
+      text-align: right;
+    }
+    button {
+      background-color: #2ea44f;
+      border-radius: 6px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 6px 16px;
+      margin-right: 5px;
+    }
+    canvas {
+      width: 100% !important;
+      height: 420px !important;
+    }
+  </style>
 </head>
 
 <body>
@@ -53,31 +58,32 @@ canvas {
 
 <div id="container">
 
-<div style="margin-bottom:10px;">
-  <label>Bulan:</label>
-  <select id="bulanSelect"></select>
+  <!-- BULAN -->
+  <div style="margin-bottom:10px;">
+    <label>Bulan: </label>
+    <select id="bulanSelect"></select>
 
-  <label style="margin-left:10px;">Tahun:</label>
-  <select id="tahunSelect"></select>
-</div>
+    <label style="margin-left:10px;">Tahun: </label>
+    <select id="tahunSelect"></select>
+  </div>
 
-<form id="dataForm">
-<table>
-<thead>
-<tr>
-<th>Indikator</th>
-<th id="labelBulanLalu">Bulan Lalu</th>
-<th id="labelBulanIni">Bulan Ini</th>
-</tr>
-</thead>
-<tbody id="formBody"></tbody>
-</table>
+  <form id="dataForm">
+    <table>
+      <thead>
+        <tr>
+          <th>Indikator</th>
+          <th id="labelBulanLalu">Bulan Lalu</th>
+          <th id="labelBulanIni">Bulan Ini</th>
+        </tr>
+      </thead>
+      <tbody id="formBody"></tbody>
+    </table>
 
-<button type="submit">Tampilkan Grafik</button>
-<button type="button" id="saveBtn">Save PNG</button>
-</form>
+    <button type="submit">Tampilkan Grafik</button>
+    <button type="button" id="saveBtn">Save to PNG</button>
+  </form>
 
-<canvas id="indikatorChart"></canvas>
+  <canvas id="indikatorChart"></canvas>
 </div>
 
 <script>
@@ -106,6 +112,18 @@ const indikator = [
   { nama: 'RRNS', persen: true, target: 2, label: 'Maksimal' },
   { nama: 'Prolanis Terkendali', persen: true, target: 5, label: 'Target' },
 ];
+
+// ===== FORM =====
+const formBody = document.getElementById('formBody');
+indikator.forEach((item, i) => {
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td>${item.nama}</td>
+    <td><input type="text" name="bulanLalu" required></td>
+    <td><input type="text" name="bulanIni" required></td>
+  `;
+  formBody.appendChild(row);
+});
 
 // ===== BULAN =====
 const bulanList = [
@@ -137,7 +155,7 @@ bulanSelect.value = now.getMonth();
 tahunSelect.value = currentYear;
 
 // ===== LABEL BULAN =====
-function updateLabel() {
+function updateLabelBulan() {
   const b = +bulanSelect.value;
   let t = +tahunSelect.value;
 
@@ -156,22 +174,9 @@ function updateLabel() {
     bulanList[bLalu] + " " + tLalu;
 }
 
-bulanSelect.onchange = updateLabel;
-tahunSelect.onchange = updateLabel;
-updateLabel();
-
-// ===== FORM =====
-const formBody = document.getElementById('formBody');
-
-indikator.forEach((item, i) => {
-  const row = document.createElement('tr');
-  row.innerHTML = `
-    <td>${item.nama}</td>
-    <td><input type="text" name="bulanLalu" required></td>
-    <td><input type="text" name="bulanIni" required></td>
-  `;
-  formBody.appendChild(row);
-});
+bulanSelect.onchange = updateLabelBulan;
+tahunSelect.onchange = updateLabelBulan;
+updateLabelBulan();
 
 // ===== CHART =====
 const ctx = document.getElementById('indikatorChart').getContext('2d');
@@ -181,20 +186,8 @@ let chart = new Chart(ctx, {
   data: {
     labels: indikator.map(i => i.nama),
     datasets: [
-      {
-        label: 'Bulan Lalu',
-        data: [],
-        backgroundColor: 'rgba(255, 99, 132, 0.7)',
-        categoryPercentage: 0.5,
-        barPercentage: 0.7
-      },
-      {
-        label: 'Bulan Ini',
-        data: [],
-        backgroundColor: 'rgba(54, 162, 235, 0.7)',
-        categoryPercentage: 0.5,
-        barPercentage: 0.7
-      }
+      { label: 'Bulan Lalu', data: [], backgroundColor: 'rgba(255, 99, 132, 0.7)', categoryPercentage: 0.5, barPercentage: 0.7 },
+      { label: 'Bulan Ini', data: [], backgroundColor: 'rgba(54, 162, 235, 0.7)', categoryPercentage: 0.5, barPercentage: 0.7 }
     ]
   },
   options: {
@@ -204,17 +197,14 @@ let chart = new Chart(ctx, {
       datalabels: {
         anchor: 'center',
         align: 'center',
-        formatter: (v, ctx) => v + '%',
+        formatter: (value, ctx) => value + (indikator[ctx.dataIndex].persen ? '%' : ''),
         color: '#000',
         font: { weight: 'bold' }
       },
       annotation: { annotations: {} }
     },
     scales: {
-      y: {
-        beginAtZero: true,
-        title: { display: true, text: 'Nilai (%)' }
-      }
+      y: { beginAtZero: true, title: { display: true, text: 'Nilai (%)' } }
     }
   },
   plugins: [ChartDataLabels]
@@ -230,12 +220,12 @@ document.getElementById('dataForm').addEventListener('submit', function(e) {
   chart.data.datasets[0].data = bulanLalu;
   chart.data.datasets[1].data = bulanIni;
 
-  // AUTO SCALE
+  // AUTO SCALE (ASLI)
   const semua = [...bulanLalu, ...bulanIni, ...indikator.map(i => i.target)];
   const max = Math.max(...semua);
   chart.options.scales.y.suggestedMax = max < 10 ? 10 : max * 1.2;
 
-  // TARGET LINE
+  // TARGET (ASLI)
   const annotations = {};
   indikator.forEach((item, i) => {
     annotations['target' + i] = {
@@ -247,12 +237,32 @@ document.getElementById('dataForm').addEventListener('submit', function(e) {
       label: {
         content: `${item.label} ${item.target}%`,
         enabled: true,
+        backgroundColor: 'transparent',
         color: '#000',
-        backgroundColor: 'transparent'
+        font: { weight: 'bold' }
       },
       xMin: i - 0.4,
       xMax: i + 0.4
     };
+
+    // tambahan ideal 0% RRNS (tetap seperti script awal kamu)
+    if (i === 1) {
+      annotations['ideal0'] = {
+        type: 'line',
+        yMin: 0,
+        yMax: 0,
+        borderColor: 'green',
+        borderWidth: 1.5,
+        label: {
+          content: 'Ideal 0%',
+          enabled: true,
+          color: '#000',
+          font: { style: 'italic' }
+        },
+        xMin: i - 0.4,
+        xMax: i + 0.4
+      };
+    }
   });
 
   chart.options.plugins.annotation.annotations = annotations;
