@@ -248,7 +248,7 @@ document.getElementById('dataForm').addEventListener('submit', function(e) {
     let yOffset, posisiLabel;
 
     if (item.label === 'Maksimal') {
-      yOffset = 20;
+      yOffset = -25;
       posisiLabel = 'start';
     } else {
       yOffset = -item.target / 2;
@@ -292,8 +292,8 @@ document.getElementById('dataForm').addEventListener('submit', function(e) {
           textStrokeColor: '#fff',
           textStrokeWidth: 1,
           font: { style: 'italic', size: 9 },
-          position: 'end',
-          yAdjust: 25
+          position: 'start',
+          yAdjust: 20
         },
         xMin: i - 0.4,
         xMax: i + 0.4
