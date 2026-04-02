@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
@@ -17,33 +16,27 @@
     table {
       border-collapse: collapse;
       margin-bottom: 10px;
-      font-size: 14px;
       width: 100%;
     }
 
     th, td {
+      border: 1px solid #ccc;
       padding: 4px;
       text-align: center;
-      border: 1px solid #ccc;
     }
 
-    input[type="number"] {
-      width: 80px;
+    input {
+      width: 90px;
       text-align: right;
     }
 
     button {
-      background-color: #2ea44f;
+      background: #2ea44f;
       color: white;
-      padding: 6px 16px;
+      padding: 6px 12px;
       border-radius: 6px;
-      cursor: pointer;
       margin-right: 5px;
-    }
-
-    canvas {
-      width: 100% !important;
-      height: 420px !important;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -54,12 +47,12 @@
 
 <div id="container">
 
-  <!-- PILIH BULAN & TAHUN -->
+  <!-- BULAN & TAHUN -->
   <div style="margin-bottom:10px;">
-    <label>Bulan: </label>
+    <label>Bulan:</label>
     <select id="bulanSelect"></select>
 
-    <label style="margin-left:10px;">Tahun: </label>
+    <label style="margin-left:10px;">Tahun:</label>
     <select id="tahunSelect"></select>
   </div>
 
@@ -76,7 +69,7 @@
     </table>
 
     <button type="submit">Tampilkan Grafik</button>
-    <button type="button" id="saveBtn">Save to PNG</button>
+    <button type="button" id="saveBtn">Save PNG</button>
   </form>
 
   <canvas id="indikatorChart"></canvas>
@@ -84,14 +77,37 @@
 
 <script>
 
+// ================= PARSE ANGKA FLEXIBLE =================
+function parseAngka(val) {
+  if (!val) return 0;
+
+  val = val.trim();
+
+  // jika ada koma dan titik → tentukan mana desimal
+  if (val.includes(',') && val.includes('.')) {
+    if (val.lastIndexOf(',') > val.lastIndexOf('.')) {
+      // format Indonesia: 1.234,56
+      val = val.replace(/\./g, '').replace(',', '.');
+    } else {
+      // format US: 1,234.56
+      val = val.replace(/,/g, '');
+    }
+  } else if (val.includes(',')) {
+    // hanya koma → anggap desimal
+    val = val.replace(',', '.');
+  }
+
+  return parseFloat(val) || 0;
+}
+
 // ================= DATA =================
 const indikator = [
-  { nama: 'Angka Kontak', persen: true, target: 15, label: 'Target' },
-  { nama: 'RRNS', persen: true, target: 2, label: 'Maksimal' },
-  { nama: 'Prolanis Terkendali', persen: true, target: 5, label: 'Target' },
+  { nama: 'Angka Kontak', persen: true },
+  { nama: 'RRNS', persen: true },
+  { nama: 'Prolanis Terkendali', persen: true },
 ];
 
-// ================= BULAN & TAHUN =================
+// ================= BULAN =================
 const bulanList = [
   "Januari","Februari","Maret","April","Mei","Juni",
   "Juli","Agustus","September","Oktober","November","Desember"
@@ -108,7 +124,7 @@ bulanList.forEach((b, i) => {
   bulanSelect.appendChild(opt);
 });
 
-// tahun otomatis sekarang + bisa ubah manual
+// tahun otomatis
 const now = new Date();
 const currentYear = now.getFullYear();
 
@@ -122,38 +138,39 @@ for (let y = currentYear - 2; y <= currentYear + 2; y++) {
 bulanSelect.value = now.getMonth();
 tahunSelect.value = currentYear;
 
-// ================= LABEL BULAN =================
-function updateLabelBulan() {
-  const bulanIni = parseInt(bulanSelect.value);
-  let tahun = parseInt(tahunSelect.value);
+// ================= LABEL =================
+function updateLabel() {
+  const b = parseInt(bulanSelect.value);
+  let t = parseInt(tahunSelect.value);
 
-  let bulanLalu = bulanIni - 1;
-  let tahunLalu = tahun;
+  let bLalu = b - 1;
+  let tLalu = t;
 
-  if (bulanLalu < 0) {
-    bulanLalu = 11;
-    tahunLalu = tahun - 1;
+  if (bLalu < 0) {
+    bLalu = 11;
+    tLalu = t - 1;
   }
 
   document.getElementById('labelBulanIni').textContent =
-    bulanList[bulanIni] + " " + tahun;
+    bulanList[b] + " " + t;
 
   document.getElementById('labelBulanLalu').textContent =
-    bulanList[bulanLalu] + " " + tahunLalu;
+    bulanList[bLalu] + " " + tLalu;
 }
 
-bulanSelect.addEventListener('change', updateLabelBulan);
-tahunSelect.addEventListener('change', updateLabelBulan);
-updateLabelBulan();
+bulanSelect.onchange = updateLabel;
+tahunSelect.onchange = updateLabel;
+updateLabel();
 
 // ================= FORM =================
 const formBody = document.getElementById('formBody');
+
 indikator.forEach((item, i) => {
   const row = document.createElement('tr');
   row.innerHTML = `
     <td>${item.nama}</td>
-    <td><input type="number" name="bulanLalu" data-index="${i}" required></td>
-    <td><input type="number" name="bulanIni" data-index="${i}" required></td>
+    <td><input type="text" name="bulanLalu" data-index="${i}" required></td>
+    <td><input type="text" name="bulanIni" data-index="${i}" required></td>
   `;
   formBody.appendChild(row);
 });
@@ -161,7 +178,7 @@ indikator.forEach((item, i) => {
 // ================= CHART =================
 const ctx = document.getElementById('indikatorChart').getContext('2d');
 
-let chart = new Chart(ctx, {
+const chart = new Chart(ctx, {
   type: 'bar',
   data: {
     labels: indikator.map(i => i.nama),
@@ -176,7 +193,7 @@ let chart = new Chart(ctx, {
       datalabels: {
         anchor: 'center',
         align: 'center',
-        formatter: (v, ctx) => v + (indikator[ctx.dataIndex].persen ? '%' : '')
+        formatter: (v, ctx) => v + '%'
       }
     },
     scales: {
@@ -190,15 +207,18 @@ let chart = new Chart(ctx, {
 document.getElementById('dataForm').addEventListener('submit', function(e) {
   e.preventDefault();
 
-  const bulanLalu = [...document.getElementsByName('bulanLalu')].map(i => +i.value);
-  const bulanIni = [...document.getElementsByName('bulanIni')].map(i => +i.value);
+  const bulanLalu = [...document.getElementsByName('bulanLalu')]
+    .map(i => parseAngka(i.value));
+
+  const bulanIni = [...document.getElementsByName('bulanIni')]
+    .map(i => parseAngka(i.value));
 
   chart.data.datasets[0].data = bulanLalu;
   chart.data.datasets[1].data = bulanIni;
   chart.update();
 });
 
-// ================= SAVE PNG =================
+// ================= SAVE =================
 document.getElementById('saveBtn').addEventListener('click', () => {
   html2canvas(document.getElementById('container')).then(canvas => {
 
