@@ -83,6 +83,10 @@
 
 <script>
 
+  function getKey() {
+  return `indikator_${bulanSelect.value}_${tahunSelect.value}`;
+}
+
 // ===== PARSE ANGKA =====
 function parseAngka(val) {
   if (!val) return 0;
@@ -240,7 +244,12 @@ document.getElementById('dataForm').addEventListener('submit', function(e) {
   const semua = [...bulanLalu, ...bulanIni, ...indikator.map(i => i.target)];
   const max = Math.max(...semua);
   chart.options.scales.y.suggestedMax = max < 10 ? 10 : max * 1.2;
+  const dataSimpan = bulanLalu.map((v, i) => ({
+    bulanLalu: v,
+    bulanIni: bulanIni[i]
+  }));
 
+localStorage.setItem(getKey(), JSON.stringify(dataSimpan));
   // TARGET + POSISI RAPI
   const annotations = {};
   indikator.forEach((item, i) => {
@@ -293,7 +302,7 @@ document.getElementById('dataForm').addEventListener('submit', function(e) {
           textStrokeWidth: 1,
           font: { style: 'italic', size: 7 },
           position: 'end',
-          yAdjust: 20
+          yAdjust: 25
         },
         xMin: i - 0.4,
         xMax: i + 0.4
