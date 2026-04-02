@@ -1,44 +1,50 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Grafik Indikator Bulanan</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Grafik Indikator Bulanan</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-  <style>
-    body { font-family: sans-serif; padding: 10px; }
-    #container { background: #fff; padding: 10px; }
+<style>
+body { font-family: sans-serif; padding: 10px; }
+#container { background: #fff; padding: 10px; }
 
-    table {
-      border-collapse: collapse;
-      margin-bottom: 10px;
-      width: 100%;
-    }
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 10px;
+}
 
-    th, td {
-      border: 1px solid #ccc;
-      padding: 4px;
-      text-align: center;
-    }
+th, td {
+  border: 1px solid #ccc;
+  padding: 4px;
+  text-align: center;
+}
 
-    input {
-      width: 90px;
-      text-align: right;
-    }
+input {
+  width: 90px;
+  text-align: right;
+}
 
-    button {
-      background: #2ea44f;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 6px;
-      margin-right: 5px;
-      cursor: pointer;
-    }
-  </style>
+button {
+  background: #2ea44f;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+canvas {
+  width: 100% !important;
+  height: 420px !important;
+}
+</style>
 </head>
 
 <body>
@@ -47,76 +53,69 @@
 
 <div id="container">
 
-  <!-- BULAN & TAHUN -->
-  <div style="margin-bottom:10px;">
-    <label>Bulan:</label>
-    <select id="bulanSelect"></select>
+<div style="margin-bottom:10px;">
+  <label>Bulan:</label>
+  <select id="bulanSelect"></select>
 
-    <label style="margin-left:10px;">Tahun:</label>
-    <select id="tahunSelect"></select>
-  </div>
+  <label style="margin-left:10px;">Tahun:</label>
+  <select id="tahunSelect"></select>
+</div>
 
-  <form id="dataForm">
-    <table>
-      <thead>
-        <tr>
-          <th>Indikator</th>
-          <th id="labelBulanLalu">Bulan Lalu</th>
-          <th id="labelBulanIni">Bulan Ini</th>
-        </tr>
-      </thead>
-      <tbody id="formBody"></tbody>
-    </table>
+<form id="dataForm">
+<table>
+<thead>
+<tr>
+<th>Indikator</th>
+<th id="labelBulanLalu">Bulan Lalu</th>
+<th id="labelBulanIni">Bulan Ini</th>
+</tr>
+</thead>
+<tbody id="formBody"></tbody>
+</table>
 
-    <button type="submit">Tampilkan Grafik</button>
-    <button type="button" id="saveBtn">Save PNG</button>
-  </form>
+<button type="submit">Tampilkan Grafik</button>
+<button type="button" id="saveBtn">Save PNG</button>
+</form>
 
-  <canvas id="indikatorChart"></canvas>
+<canvas id="indikatorChart"></canvas>
 </div>
 
 <script>
 
-// ================= PARSE ANGKA FLEXIBLE =================
+// ===== PARSE ANGKA =====
 function parseAngka(val) {
   if (!val) return 0;
-
   val = val.trim();
 
-  // jika ada koma dan titik → tentukan mana desimal
   if (val.includes(',') && val.includes('.')) {
     if (val.lastIndexOf(',') > val.lastIndexOf('.')) {
-      // format Indonesia: 1.234,56
       val = val.replace(/\./g, '').replace(',', '.');
     } else {
-      // format US: 1,234.56
       val = val.replace(/,/g, '');
     }
   } else if (val.includes(',')) {
-    // hanya koma → anggap desimal
     val = val.replace(',', '.');
   }
 
   return parseFloat(val) || 0;
 }
 
-// ================= DATA =================
+// ===== DATA =====
 const indikator = [
-  { nama: 'Angka Kontak', persen: true },
-  { nama: 'RRNS', persen: true },
-  { nama: 'Prolanis Terkendali', persen: true },
+  { nama: 'Angka Kontak', persen: true, target: 15, label: 'Target' },
+  { nama: 'RRNS', persen: true, target: 2, label: 'Maksimal' },
+  { nama: 'Prolanis Terkendali', persen: true, target: 5, label: 'Target' },
 ];
 
-// ================= BULAN =================
+// ===== BULAN =====
 const bulanList = [
-  "Januari","Februari","Maret","April","Mei","Juni",
-  "Juli","Agustus","September","Oktober","November","Desember"
+"Januari","Februari","Maret","April","Mei","Juni",
+"Juli","Agustus","September","Oktober","November","Desember"
 ];
 
 const bulanSelect = document.getElementById('bulanSelect');
 const tahunSelect = document.getElementById('tahunSelect');
 
-// isi bulan
 bulanList.forEach((b, i) => {
   const opt = document.createElement('option');
   opt.value = i;
@@ -124,7 +123,6 @@ bulanList.forEach((b, i) => {
   bulanSelect.appendChild(opt);
 });
 
-// tahun otomatis
 const now = new Date();
 const currentYear = now.getFullYear();
 
@@ -138,10 +136,10 @@ for (let y = currentYear - 2; y <= currentYear + 2; y++) {
 bulanSelect.value = now.getMonth();
 tahunSelect.value = currentYear;
 
-// ================= LABEL =================
+// ===== LABEL BULAN =====
 function updateLabel() {
-  const b = parseInt(bulanSelect.value);
-  let t = parseInt(tahunSelect.value);
+  const b = +bulanSelect.value;
+  let t = +tahunSelect.value;
 
   let bLalu = b - 1;
   let tLalu = t;
@@ -162,63 +160,107 @@ bulanSelect.onchange = updateLabel;
 tahunSelect.onchange = updateLabel;
 updateLabel();
 
-// ================= FORM =================
+// ===== FORM =====
 const formBody = document.getElementById('formBody');
 
 indikator.forEach((item, i) => {
   const row = document.createElement('tr');
   row.innerHTML = `
     <td>${item.nama}</td>
-    <td><input type="text" name="bulanLalu" data-index="${i}" required></td>
-    <td><input type="text" name="bulanIni" data-index="${i}" required></td>
+    <td><input type="text" name="bulanLalu" required></td>
+    <td><input type="text" name="bulanIni" required></td>
   `;
   formBody.appendChild(row);
 });
 
-// ================= CHART =================
+// ===== CHART =====
 const ctx = document.getElementById('indikatorChart').getContext('2d');
 
-const chart = new Chart(ctx, {
+let chart = new Chart(ctx, {
   type: 'bar',
   data: {
     labels: indikator.map(i => i.nama),
     datasets: [
-      { label: 'Bulan Lalu', data: [], backgroundColor: 'red' },
-      { label: 'Bulan Ini', data: [], backgroundColor: 'blue' }
+      {
+        label: 'Bulan Lalu',
+        data: [],
+        backgroundColor: 'rgba(255, 99, 132, 0.7)',
+        categoryPercentage: 0.5,
+        barPercentage: 0.7
+      },
+      {
+        label: 'Bulan Ini',
+        data: [],
+        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+        categoryPercentage: 0.5,
+        barPercentage: 0.7
+      }
     ]
   },
   options: {
     responsive: true,
     plugins: {
+      legend: { position: 'top' },
       datalabels: {
         anchor: 'center',
         align: 'center',
-        formatter: (v, ctx) => v + '%'
-      }
+        formatter: (v, ctx) => v + '%',
+        color: '#000',
+        font: { weight: 'bold' }
+      },
+      annotation: { annotations: {} }
     },
     scales: {
-      y: { beginAtZero: true }
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'Nilai (%)' }
+      }
     }
   },
   plugins: [ChartDataLabels]
 });
 
-// ================= SUBMIT =================
+// ===== SUBMIT =====
 document.getElementById('dataForm').addEventListener('submit', function(e) {
   e.preventDefault();
 
-  const bulanLalu = [...document.getElementsByName('bulanLalu')]
-    .map(i => parseAngka(i.value));
-
-  const bulanIni = [...document.getElementsByName('bulanIni')]
-    .map(i => parseAngka(i.value));
+  const bulanLalu = [...document.getElementsByName('bulanLalu')].map(i => parseAngka(i.value));
+  const bulanIni = [...document.getElementsByName('bulanIni')].map(i => parseAngka(i.value));
 
   chart.data.datasets[0].data = bulanLalu;
   chart.data.datasets[1].data = bulanIni;
+
+  // AUTO SCALE
+  const semua = [...bulanLalu, ...bulanIni, ...indikator.map(i => i.target)];
+  const max = Math.max(...semua);
+  chart.options.scales.y.suggestedMax = max < 10 ? 10 : max * 1.2;
+
+  // TARGET LINE
+  const annotations = {};
+  indikator.forEach((item, i) => {
+    annotations['target' + i] = {
+      type: 'line',
+      yMin: item.target,
+      yMax: item.target,
+      borderColor: (i === 1) ? 'red' : 'green',
+      borderWidth: 2,
+      label: {
+        content: `${item.label} ${item.target}%`,
+        enabled: true,
+        color: '#000',
+        backgroundColor: 'transparent'
+      },
+      xMin: i - 0.4,
+      xMax: i + 0.4
+    };
+  });
+
+  chart.options.plugins.annotation.annotations = annotations;
+
   chart.update();
 });
 
-// ================= SAVE =================
+// ===== SAVE =====
 document.getElementById('saveBtn').addEventListener('click', () => {
   html2canvas(document.getElementById('container')).then(canvas => {
 
