@@ -260,7 +260,7 @@ document.getElementById('dataForm').addEventListener('submit', function(e) {
   indikator.forEach((item, i) => {
 
     let yOffset = item.label === 'Maksimal' ? -2 : -10;
-    let posisiLabel = 'start';
+    let posisiLabel = item.label === 'Maksimal' ? 'end' : 'start';
 
     annotations['target' + i] = {
       type: 'line',
