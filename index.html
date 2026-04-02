@@ -259,8 +259,15 @@ document.getElementById('dataForm').addEventListener('submit', function(e) {
   const annotations = {};
   indikator.forEach((item, i) => {
 
-    let yOffset = item.label === 'Maksimal' ? -2 : -10;
-    let posisiLabel = item.label === 'Maksimal' ? 'end' : 'start';
+  let yOffset, posisiLabel;
+  
+  if (item.label === 'Maksimal') {
+    yOffset = 3;          // turun sedikit dari garis
+    posisiLabel = 'start'; // kiri (sesuai keinginan kamu)
+  } else {
+    yOffset = -10;
+    posisiLabel = item.target <= 5 ? 'start' : 'end';
+  }
 
     annotations['target' + i] = {
       type: 'line',
@@ -298,7 +305,7 @@ document.getElementById('dataForm').addEventListener('submit', function(e) {
           textStrokeColor: '#fff',
           textStrokeWidth: 1,
           font: { size: 7 },
-          position: 'start',
+          position: 'end',
           yAdjust: 20
         },
         xMin: i - 0.4,
